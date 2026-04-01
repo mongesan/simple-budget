@@ -213,48 +213,92 @@ export default function App() {
   const mIncome = (d.txList || []).filter(t => t.date.startsWith(thisM) && t.type === "income").reduce((s, t) => s + t.amount, 0);
   const mExpense = (d.txList || []).filter(t => t.date.startsWith(thisM) && t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
+  const handleExportJSON = () => {
+    try {
+      const jsonString = JSON.stringify(d, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `budget_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("エクスポートエラー:", error);
+      alert("エクスポートに失敗しました。");
+    }
+  };
+
+  const handleImportJSON = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+
+        // データの簡易バリデーション（必要に応じて構造チェックを追加）
+        if (typeof importedData === 'object' && importedData !== null) {
+          if (window.confirm("現在のデータが上書きされます。よろしいですか？")) {
+            setD(importedData);
+            alert("インポートが完了しました。同期が開始されます。");
+          }
+        } else {
+          throw new Error("無効なJSON形式です");
+        }
+      } catch (error) {
+        console.error("インポートエラー:", error);
+        alert("ファイルの読み込みに失敗しました。有効なバックアップファイルを選択してください。");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div style={{ fontFamily: "sans-serif", background: "#f1f5f9", minHeight: "100vh", color: "#1e293b" }}>
 
       {/* ヘッダー */}
-<div style={{
-  background: "linear-gradient(135deg,#6366f1,#818cf8)",
-  color: "#fff",
-  padding: "20px",           // 余白を少し広げてバランス調整
-  display: "flex",
-  flexDirection: "column",    // 縦並びにすることで、狭い画面でも重ならない
-  alignItems: "center",       // すべての要素を水平方向の中央に配置
-  textAlign: "center",        // テキストを中央揃えに
-  gap: "12px"                 // 金額とボタンの間の距離を詰めて配置
-}}>
-  {/* 中央：タイトルと金額 */}
-  <div>
-    <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.9 }}>
-      💰シンプル家計簿
-      {/* 保存ステータスの表示 */}
-          {syncStatus && (
-            <span style={{ 
-              fontSize: 10, 
-              fontWeight: 400, 
-              marginLeft: 10, 
-              padding: "2px 6px", 
-              background: "rgba(255,255,255,0.2)", 
-              borderRadius: 4,
-              color: syncStatus.type === 'error' ? '#ffcfcf' : '#fff'
-            }}>
-              {syncStatus.msg}
-            </span>
-          )}
-    </div>
-    <div style={{ fontSize: 32, fontWeight: 800, marginTop: 2 }}>{fmt(totalBalance)}</div>
-    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 5}}>総合計残高</div>
-  </div>
+      <div style={{
+        background: "linear-gradient(135deg,#6366f1,#818cf8)",
+        color: "#fff",
+        padding: "20px",           // 余白を少し広げてバランス調整
+        display: "flex",
+        flexDirection: "column",    // 縦並びにすることで、狭い画面でも重ならない
+        alignItems: "center",       // すべての要素を水平方向の中央に配置
+        textAlign: "center",        // テキストを中央揃えに
+        gap: "12px"                 // 金額とボタンの間の距離を詰めて配置
+      }}>
+        {/* 中央：タイトルと金額 */}
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.9 }}>
+            💰シンプル家計簿
+            {/* 保存ステータスの表示 */}
+            {syncStatus && (
+              <span style={{
+                fontSize: 10,
+                fontWeight: 400,
+                marginLeft: 10,
+                padding: "2px 6px",
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: 4,
+                color: syncStatus.type === 'error' ? '#ffcfcf' : '#fff'
+              }}>
+                {syncStatus.msg}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 32, fontWeight: 800, marginTop: 2 }}>{fmt(totalBalance)}</div>
+          <div style={{ fontSize: 11, opacity: 0.7, marginTop: 5 }}>総合計残高</div>
+        </div>
 
-  {/* 下部：ログインボタン（中央に配置される） */}
-  <div style={{ flexShrink: 0 }}>
-    <LoginButton />
-  </div>
-</div>
+        {/* 下部：ログインボタン（中央に配置される） */}
+        <div style={{ flexShrink: 0 }}>
+          <LoginButton />
+        </div>
+      </div>
 
       {/* タブ */}
       <div style={{ display: "flex", background: "#fff", borderBottom: "1px solid #e2e8f0", overflowX: "auto" }}>
@@ -526,6 +570,48 @@ export default function App() {
               <button onClick={addAccount} style={{ padding: "8px 14px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 16, flexShrink: 0 }}>＋</button>
             </div>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>※ 口座を削除するとその口座の取引もすべて削除されます</div>
+            <div
+              style={{
+                marginTop: 20,
+                paddingTop: 16,
+                borderTop: '1px solid #e2e8f0',
+              }}
+            ></div>
+
+            {/* データ管理セクション */}
+            <div className="bg-white p-4 rounded-lg shadow space-y-4">
+              <div style={{fontWeight: 700, marginBottom: 14}}>データ管理</div>
+
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">現在のデータをJSONファイルとして保存します。(エキスポート)</p>
+                  
+                  <button
+                    onClick={handleExportJSON}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    JSONエクスポート
+                  </button>
+                </div>
+                
+
+                <div className="border-t pt-4">
+                  <p className="text-sm text-gray-600 mb-2">保存したJSONファイルからデータを復元します。(インポート)</p>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportJSON}
+                    className="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100"
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 
