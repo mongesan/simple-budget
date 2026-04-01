@@ -247,7 +247,7 @@ export default function App() {
           )}
     </div>
     <div style={{ fontSize: 32, fontWeight: 800, marginTop: 2 }}>{fmt(totalBalance)}</div>
-    <div style={{ fontSize: 11, opacity: 0.7 }}>総合計残高</div>
+    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 5}}>総合計残高</div>
   </div>
 
   {/* 下部：ログインボタン（中央に配置される） */}
@@ -530,6 +530,18 @@ export default function App() {
         )}
 
       </div>
+      {/* ── フッター ── */}
+      <footer style={{
+        textAlign: "center",
+        padding: "30px 10px 40px", // 下に少し余裕を持たせる
+        fontSize: 11,
+        color: "#fff",
+        backgroundColor: "#333",
+        opacity: 0.6,              // 小さく控えめにする
+        fontFamily: "sans-serif"
+      }}>
+        copyright: Shunichiro Sakamoto (2026)
+      </footer>
     </div>
   );
 }
