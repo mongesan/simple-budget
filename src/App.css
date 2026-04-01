@@ -182,3 +182,31 @@
     border-right-color: var(--border);
   }
 }
+
+/* ヘッダー全体のコンテナ */
+.header-container {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column; /* スマホでは縦並び */
+  align-items: center;    /* 中央寄せ */
+  text-align: center;     /* テキストも中央寄せ */
+  gap: 12px;              /* 要素間の詰まり具合を調整 */
+}
+
+/* PCなどの広い画面（600px以上など）での表示 */
+@media (min-width: 600px) {
+  .header-container {
+    flex-direction: row;        /* 横並び */
+    justify-content: space-between; /* 両端に配置 */
+    align-items: flex-start;    /* 上揃え */
+    text-align: left;           /* 左寄せに戻す */
+    padding: 16px 32px;
+  }
+}
+
+/* 金額表示のスタイル調整 */
+.header-amount-box {
+  flex: 1;
+}

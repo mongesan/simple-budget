@@ -30,6 +30,7 @@ export default function LoginButton() {
     try {
       await signOut();
       setShowDropdown(false);
+      window.location.reload();
     } catch (error) {
       console.error('Logout failed:', error);
     }
